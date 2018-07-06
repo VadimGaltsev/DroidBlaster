@@ -29,14 +29,33 @@
 #include "DroidBlaster.h"
 #include "Logger.h"
 
-DroidBlaster::DroidBlaster(android_app * app) : _eventLooper(app, *this) {
+static const  int32_t  SHIP_SIZE = 64;
+static const int32_t  ASTEROIDS_COUNT = 16;
+static const int32_t ASTEROID_SIZE = 64;
+DroidBlaster::DroidBlaster(android_app * app) : _TimeManager(), _eventLooper(app, *this), _GraphicManager(app),
+                                                _PhysicsManager(_TimeManager, _GraphicManager),
+                                                _Ship(app, _GraphicManager),
+                                                _Asteroids(app, _TimeManager, _GraphicManager, _PhysicsManager) {
     LOG_INFO(CREATE)
+    GraphicsElement * shipGraphicElement = _GraphicManager.registerElement(SHIP_SIZE, SHIP_SIZE);
+    _Ship.registerShip(shipGraphicElement);
+    for (int32_t i = 0; i < ASTEROIDS_COUNT; ++i) {
+        GraphicsElement * asteroidGraphics = _GraphicManager.registerElement(ASTEROID_SIZE, ASTEROID_SIZE);
+        _Asteroids.registerAsteroid(asteroidGraphics->location, ASTEROID_SIZE, ASTEROID_SIZE);
+    }
 }
 void DroidBlaster::run() {
     _eventLooper.run();
 }
 status DroidBlaster::onActive() {
     LOG_INFO(ON_ACTIVE)
+    if (_GraphicManager.start() != STATUS_OK) {
+        return STATUS_KO;
+    }
+    _Asteroids.initialize();
+    _Ship.initialize();
+    _TimeManager.reset();
+    return STATUS_OK;
 }
 void DroidBlaster::onDeactivate() {
     LOG_INFO(ON_DEACTIVE)
@@ -48,9 +67,10 @@ void DroidBlaster::onStop() {
     LOG_INFO(ON_STOP)
 }
 status DroidBlaster::onStep() {
-    LOG_INFO(STEP_START)
-    usleep(300000);
-    LOG_INFO(STEP_DONE)
+    _TimeManager.update();
+    _PhysicsManager.update();
+    _Asteroids.update();
+    return _GraphicManager.update();
 }
 void DroidBlaster::onStart() {
     LOG_INFO(ON_START)

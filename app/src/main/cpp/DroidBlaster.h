@@ -8,6 +8,12 @@
 #include "ActivityHandler.h"
 #include "LooperEvent.h"
 #include "Types.h"
+#include "Ship.h"
+#include "GraphicsManager.h"
+#include "Asteroid.h"
+#include "PhysicsManager.h"
+#include "TimeManager.h"
+
 
 class DroidBlaster : public ActivityHandler {
 public:
@@ -35,6 +41,10 @@ protected:
     virtual void onLostFocus();
 private:
     EventLifecycle _eventLooper;
-
+    GraphicsManager _GraphicManager;
+    Ship _Ship;
+    TimeManager _TimeManager;
+    PhysicsManager _PhysicsManager;
+    Asteroid _Asteroids;
 };
 #endif //ANDROIDNATIVEBLUSTER_DROIDBLASTER_H

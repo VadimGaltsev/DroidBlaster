@@ -53,6 +53,7 @@ void EventLifecycle::activate() {
             goto ERROR;
         }
     }
+    return;
     ERROR: {
     _Quit = true;
     deactivate();
@@ -85,16 +86,19 @@ void EventLifecycle::processAppEvent(int32_t _command) {
             _ActivityHandler.onDestroy();
             break;
         case APP_CMD_GAINED_FOCUS:
+            activate();
             _ActivityHandler.onGainFocus();
             break;
         case APP_CMD_LOST_FOCUS:
             _ActivityHandler.onLostFocus();
+            deactivate();
             break;
         case APP_CMD_LOW_MEMORY:
             _ActivityHandler.onLowMemory();
             break;
         case APP_CMD_PAUSE:
             _ActivityHandler.onPause();
+            deactivate();
             break;
         case APP_CMD_RESUME:
             _ActivityHandler.onResume();
