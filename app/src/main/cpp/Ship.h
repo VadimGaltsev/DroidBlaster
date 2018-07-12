@@ -5,17 +5,18 @@
 #ifndef ANDROIDNATIVEBLUSTER_SHIP_H
 #define ANDROIDNATIVEBLUSTER_SHIP_H
 
+#include "Sprite.h"
 #include "GraphicsManager.h"
 
 class Ship {
 public:
     Ship(android_app * androidApp, GraphicsManager& graphicsManager);
-    void registerShip(GraphicsElement * graphicsElement);
+    void registerShip(Sprite * graphicsElement);
     void initialize();
 
 private:
     GraphicsManager& _GraphicManager;
-    GraphicsElement* _GraphicElement;
+    Sprite* _GraphicElement;
 };
 
 

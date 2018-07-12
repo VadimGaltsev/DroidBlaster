@@ -23,24 +23,40 @@
 #define SAVE_STATE "onSaveInstanceState come"
 #define ON_FOCUS "onGainFocus"
 #define LOST_FOCUS "onLostFocus"
+#define SHIP_TEXTURE "droidblaster/ship.png"
+#define ASTEROID_TEXTURE "droidblaster/asteroid.png"
 #endif
 
 #include <unistd.h>
+#include <cstdlib>
 #include "DroidBlaster.h"
 #include "Logger.h"
 
 static const  int32_t  SHIP_SIZE = 64;
 static const int32_t  ASTEROIDS_COUNT = 16;
 static const int32_t ASTEROID_SIZE = 64;
+static const int32_t SHIP_FRAME_1 = 0;
+static const int32_t SHIP_FRAME_COUNT = 8;
+static const float SHIP_ANIM_SPEED = 8.0f;
+static const int32_t ASTEROID_FRAME_1 = 0;
+static const int32_t ASTEROID_FRAME_COUNT = 16;
+static const float  ASTEROID_MIN_ANIM_SPEED = 8.0f;
+static const float ASTEROID_ANIM_SPEED_RANGE = 16.0f;
+
 DroidBlaster::DroidBlaster(android_app * app) : _TimeManager(), _eventLooper(app, *this), _GraphicManager(app),
                                                 _PhysicsManager(_TimeManager, _GraphicManager),
                                                 _Ship(app, _GraphicManager),
-                                                _Asteroids(app, _TimeManager, _GraphicManager, _PhysicsManager) {
+                                                _Asteroids(app, _TimeManager, _GraphicManager, _PhysicsManager),
+                                                _AsteroidTexture(app, ASTEROID_TEXTURE),
+                                                _ShipTexture(app, SHIP_TEXTURE), _SpriteBatch(_TimeManager, _GraphicManager) {
     LOG_INFO(CREATE)
-    GraphicsElement * shipGraphicElement = _GraphicManager.registerElement(SHIP_SIZE, SHIP_SIZE);
-    _Ship.registerShip(shipGraphicElement);
+    Sprite * shipSpriteGraphic = _SpriteBatch.registerSprite(_ShipTexture, SHIP_SIZE, SHIP_SIZE);
+    shipSpriteGraphic->setAnimation(SHIP_FRAME_1, SHIP_FRAME_COUNT, SHIP_ANIM_SPEED, true);
+    _Ship.registerShip(shipSpriteGraphic);
     for (int32_t i = 0; i < ASTEROIDS_COUNT; ++i) {
-        GraphicsElement * asteroidGraphics = _GraphicManager.registerElement(ASTEROID_SIZE, ASTEROID_SIZE);
+        Sprite * asteroidGraphics = _SpriteBatch.registerSprite(_AsteroidTexture, ASTEROID_SIZE, ASTEROID_SIZE);
+        float animSpeed = ASTEROID_MIN_ANIM_SPEED + RAND(ASTEROID_ANIM_SPEED_RANGE);
+        asteroidGraphics->setAnimation(ASTEROID_FRAME_1, ASTEROID_FRAME_COUNT, animSpeed, true);
         _Asteroids.registerAsteroid(asteroidGraphics->location, ASTEROID_SIZE, ASTEROID_SIZE);
     }
 }
@@ -52,6 +68,8 @@ status DroidBlaster::onActive() {
     if (_GraphicManager.start() != STATUS_OK) {
         return STATUS_KO;
     }
+    _GraphicManager.loadTexture(_AsteroidTexture);
+    _GraphicManager.loadTexture(_ShipTexture);
     _Asteroids.initialize();
     _Ship.initialize();
     _TimeManager.reset();
@@ -59,6 +77,7 @@ status DroidBlaster::onActive() {
 }
 void DroidBlaster::onDeactivate() {
     LOG_INFO(ON_DEACTIVE)
+    _GraphicManager.stop();
 }
 void DroidBlaster::onResume() {
     LOG_INFO(ON_RESUME)

@@ -12,11 +12,11 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
-file(GLOB
+file(GLOB_RECURSE
             mainData
 
-            src/main/cpp/*.h
-            src/main/cpp/*.cpp
+            *.h
+            *.cpp
             )
 
 add_library( # Sets the name of the library.
@@ -34,8 +34,44 @@ add_library( # Sets the name of the path variable.
               STATIC
               # Specifies the name of the NDK library that
               # you want CMake to locate.
-              /Users/vadik/Library/Android/sdk/ndk-bundle/sources/android/native_app_glue/android_native_app_glue.c)
+              ~/Library/Android/sdk/ndk-bundle/sources/android/native_app_glue/android_native_app_glue.c)
 
+
+set(png_src /Users/vadim/Library/Android/sdk/ndk-bundle/sources/third_party/libpng/)
+set(zlib_src /Users/vadim/Library/Android/sdk/ndk-bundle/sources/third_party/zlib/)
+
+
+find_package(ZLIB REQUIRED)
+
+file(GLOB
+          png_lib
+          ${png_src}/*.h
+          ${png_src}/*.cpp
+          ${png_src}/*.c
+            )
+file(GLOB
+          zlib_lib
+          ${zlib_src}/*.h
+          ${zlib_src}/*.cpp
+          ${zlib_src}/*.c
+            )
+
+include_directories(${png_src})
+include_directories(${zlib_src})
+add_library( # Sets the name of the path variable.
+              pnglib
+
+              STATIC
+              # Specifies the name of the NDK library that
+              # you want CMake to locate.
+              ${png_lib})
+add_library( # Sets the name of the path variable.
+              zlibLib
+
+              STATIC
+              # Specifies the name of the NDK library that
+              # you want CMake to locate.
+              ${zlib_lib})
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -55,8 +91,20 @@ find_library( # Sets the name of the path variable.
                             # Specifies the name of the NDK library that
                             # you want CMake to locate.
                             android )
+find_library( # Sets the name of the path variable.
+                            eglLib
+
+                            # Specifies the name of the NDK library that
+                            # you want CMake to locate.
+                            EGL )
 
 
+find_library( GLES2Lib
+
+              GLESv2)
+
+
+set(graphics ${GLES2Lib} ${eglLib})
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -70,4 +118,7 @@ target_link_libraries( # Specifies the target library.
                        ${log-lib}
                        ${android-native}
                        native-glue
-                       )
+                       ${graphics}
+                        pnglib
+                        zlibLib
+                             )

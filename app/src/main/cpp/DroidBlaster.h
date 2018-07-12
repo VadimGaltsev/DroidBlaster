@@ -13,6 +13,8 @@
 #include "Asteroid.h"
 #include "PhysicsManager.h"
 #include "TimeManager.h"
+#include "Resource.h"
+#include "SpriteBatch.h"
 
 
 class DroidBlaster : public ActivityHandler {
@@ -46,5 +48,8 @@ private:
     TimeManager _TimeManager;
     PhysicsManager _PhysicsManager;
     Asteroid _Asteroids;
+    Resource _AsteroidTexture;
+    Resource _ShipTexture;
+    SpriteBatch _SpriteBatch;
 };
 #endif //ANDROIDNATIVEBLUSTER_DROIDBLASTER_H
