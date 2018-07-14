@@ -8,13 +8,13 @@
 #include "ActivityHandler.h"
 #include "LooperEvent.h"
 #include "Types.h"
-#include "Ship.h"
-#include "GraphicsManager.h"
-#include "Asteroid.h"
-#include "PhysicsManager.h"
-#include "TimeManager.h"
-#include "Resource.h"
-#include "SpriteBatch.h"
+#include "objects/Ship.h"
+#include "managers/GraphicsManager.h"
+#include "objects/Asteroid.h"
+#include "managers/PhysicsManager.h"
+#include "managers/TimeManager.h"
+#include "helpers/Resource.h"
+#include "engine/SpriteBatch.h"
 
 
 class DroidBlaster : public ActivityHandler {

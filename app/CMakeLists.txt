@@ -15,8 +15,8 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_o
 file(GLOB_RECURSE
             mainData
 
-            *.h
-            *.cpp
+            src/main/cpp/*.h
+            src/main/cpp/*.cpp
             )
 
 add_library( # Sets the name of the library.
@@ -37,11 +37,12 @@ add_library( # Sets the name of the path variable.
               ~/Library/Android/sdk/ndk-bundle/sources/android/native_app_glue/android_native_app_glue.c)
 
 
-set(png_src /Users/vadim/Library/Android/sdk/ndk-bundle/sources/third_party/libpng/)
-set(zlib_src /Users/vadim/Library/Android/sdk/ndk-bundle/sources/third_party/zlib/)
+set(png_src src/main/lib/libpng/)
+set(zlib_src src/main/lib/zlib/)
 
+message("native source app ${PROJECT_SOURCE_DIR}")
 
-find_package(ZLIB REQUIRED)
+#find_package(ZLIB REQUIRED)
 
 file(GLOB
           png_lib
@@ -119,6 +120,6 @@ target_link_libraries( # Specifies the target library.
                        ${android-native}
                        native-glue
                        ${graphics}
-                        pnglib
-                        zlibLib
+                       pnglib
+                       zlibLib
                              )

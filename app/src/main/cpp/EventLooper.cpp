@@ -3,7 +3,7 @@
 //
 
 #include "LooperEvent.h"
-#include "Logger.h"
+#include "helpers/Logger.h"
 #define STARTING "Starting Event Loop"
 #define EXIT "Exiting Event Loop"
 

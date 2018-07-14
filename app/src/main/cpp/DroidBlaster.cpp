@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <cstdlib>
 #include "DroidBlaster.h"
-#include "Logger.h"
+#include "helpers/Logger.h"
 
 static const  int32_t  SHIP_SIZE = 64;
 static const int32_t  ASTEROIDS_COUNT = 16;
