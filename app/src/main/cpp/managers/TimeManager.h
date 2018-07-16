@@ -14,7 +14,7 @@ public:
     void update();
     double now();
     float elapsed() { return _Elapsed; }
-    float elapsedTotel() { return _ElapsedTotal; }
+    float elapsedTotal() { return _ElapsedTotal; }
 
 private:
     double _FirstTime;

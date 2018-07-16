@@ -15,6 +15,7 @@
 #include "managers/TimeManager.h"
 #include "helpers/Resource.h"
 #include "engine/SpriteBatch.h"
+#include "StarField.h"
 
 
 class DroidBlaster : public ActivityHandler {
@@ -45,11 +46,13 @@ private:
     EventLifecycle _eventLooper;
     GraphicsManager _GraphicManager;
     Ship _Ship;
+    StarField _StarField;
     TimeManager _TimeManager;
     PhysicsManager _PhysicsManager;
     Asteroid _Asteroids;
     Resource _AsteroidTexture;
     Resource _ShipTexture;
+    Resource _StarTexture;
     SpriteBatch _SpriteBatch;
 };
 #endif //ANDROIDNATIVEBLUSTER_DROIDBLASTER_H

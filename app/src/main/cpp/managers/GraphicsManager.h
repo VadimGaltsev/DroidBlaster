@@ -33,6 +33,7 @@ public:
     ~GraphicsManager();
     GLuint loadShader(const char* vertexShader, const char* fragmentShader);
     void registerComponent(GraphicsComponent* graphicsComponent);
+    GLuint loadVertexBuffer(const void*, int32_t size);
     GLfloat* getProjectionMatrix() { return ProjectionMatrix[0]; }
     TextureProperties* loadTexture(Resource& resource);
     int32_t getRenderWidth() const { return _RenderWidth; }
@@ -45,6 +46,8 @@ private:
     struct RenderVertex {
         GLfloat x, y, u, v;
     };
+    GLuint VertexBuffers[32];
+    int32_t VertexBufferCount;
     GLuint Shaders[32];
     int32_t ShadersCount;
     TextureProperties _Textures[32];

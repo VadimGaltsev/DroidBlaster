@@ -25,6 +25,7 @@
 #define LOST_FOCUS "onLostFocus"
 #define SHIP_TEXTURE "droidblaster/ship.png"
 #define ASTEROID_TEXTURE "droidblaster/asteroid.png"
+#define STAR_TEXTURE "droidblaster/star.png"
 #endif
 
 #include <unistd.h>
@@ -42,13 +43,15 @@ static const int32_t ASTEROID_FRAME_1 = 0;
 static const int32_t ASTEROID_FRAME_COUNT = 16;
 static const float  ASTEROID_MIN_ANIM_SPEED = 8.0f;
 static const float ASTEROID_ANIM_SPEED_RANGE = 16.0f;
+static const int32_t STAR_COUNT = 50;
 
 DroidBlaster::DroidBlaster(android_app * app) : _TimeManager(), _eventLooper(app, *this), _GraphicManager(app),
                                                 _PhysicsManager(_TimeManager, _GraphicManager),
                                                 _Ship(app, _GraphicManager),
                                                 _Asteroids(app, _TimeManager, _GraphicManager, _PhysicsManager),
-                                                _AsteroidTexture(app, ASTEROID_TEXTURE),
-                                                _ShipTexture(app, SHIP_TEXTURE), _SpriteBatch(_TimeManager, _GraphicManager) {
+                                                _AsteroidTexture(app, ASTEROID_TEXTURE), _StarTexture(app, STAR_TEXTURE),
+                                                _ShipTexture(app, SHIP_TEXTURE), _SpriteBatch(_TimeManager, _GraphicManager),
+                                                _StarField(app, _TimeManager, _GraphicManager, STAR_COUNT, _StarTexture) {
     LOG_INFO(CREATE)
     Sprite * shipSpriteGraphic = _SpriteBatch.registerSprite(_ShipTexture, SHIP_SIZE, SHIP_SIZE);
     shipSpriteGraphic->setAnimation(SHIP_FRAME_1, SHIP_FRAME_COUNT, SHIP_ANIM_SPEED, true);
@@ -70,6 +73,7 @@ status DroidBlaster::onActive() {
     }
     _GraphicManager.loadTexture(_AsteroidTexture);
     _GraphicManager.loadTexture(_ShipTexture);
+    _GraphicManager.loadTexture(_StarTexture);
     _Asteroids.initialize();
     _Ship.initialize();
     _TimeManager.reset();

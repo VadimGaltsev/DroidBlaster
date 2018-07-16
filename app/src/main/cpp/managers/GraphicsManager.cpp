@@ -12,7 +12,8 @@
 GraphicsManager::GraphicsManager(android_app *pApplication) :
         appPtr(pApplication), _RenderWidth(0), _RenderHeight(0),
         _elements(), eglContext(EGL_NO_CONTEXT), display(EGL_NO_DISPLAY), surface(EGL_NO_SURFACE),
-        TextureCount(0), _Textures(), ProjectionMatrix(), Shaders(), ShadersCount(0),_componentsCount(0) {
+        TextureCount(0), _Textures(), ProjectionMatrix(), Shaders(),
+        ShadersCount(0),_componentsCount(0), VertexBuffers(), VertexBufferCount(0) {
     Logger::info("Creating graphicManager");
 }
 
@@ -291,6 +292,10 @@ void GraphicsManager::stop() {
     for (int32_t i = 0; i < ShadersCount; ++i) {
         glDeleteShader(Shaders[i]);
     }
+    for (int32_t i = 0; i < VertexBufferCount; ++i) {
+        glDeleteBuffers(1, &VertexBuffers[i]);
+    }
+    VertexBufferCount = 0;
     ShadersCount = 0;
     if (display != EGL_NO_DISPLAY) {
         eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -312,4 +317,20 @@ void support::callBackReadPng(png_structp structp, png_bytep data, png_size_t si
     if (resource->read(data, size) != STATUS_OK) {
         resource->close();
     }
+}
+
+GLuint GraphicsManager::loadVertexBuffer(const void * p_VertexBuffer, int32_t size) {
+    GLuint vertexBuffer;
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, size, p_VertexBuffer, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    if (glGetError() != GL_NO_ERROR) goto ERROR;
+    VertexBuffers[VertexBufferCount++] = vertexBuffer;
+    return vertexBuffer;
+    ERROR:
+        Logger::error("Error while loading vertex buffer");
+        if (vertexBuffer > 0) glDeleteBuffers(1, &vertexBuffer);
+        return 0;
 }
