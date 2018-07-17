@@ -14,6 +14,28 @@
 namespace support {
     void callBackReadPng(png_structp structp, png_bytep data, png_size_t size);
 }
+
+
+static const char * VERTEX_SHADER = {
+                "attribute vec2 aPosition; \n"
+                "attribute vec2 aTexture; \n"
+                "varying vec2 vTexture; \n"
+                "void main() { \n"
+                "vTexture = aTexture; \n"
+                "gl_Position = vec4(aPosition, 1.0, 1.0); \n"
+                "}"
+
+};
+static const char* FRAGMENT_SHADER = {
+                "precision mediump float; \n"
+                "uniform sampler2D uTexture;\n"
+                        "varying vec2 vTexture; \n"
+                        "void main() { \n"
+                "gl_FragColor = texture2D(uTexture, vTexture); \n"
+                "}"
+
+};
+
 struct TextureProperties {
     Resource* textureResourcePtr;
     GLuint texture;
@@ -38,11 +60,14 @@ public:
     TextureProperties* loadTexture(Resource& resource);
     int32_t getRenderWidth() const { return _RenderWidth; }
     int32_t getRenderHeight() const { return _RenderHeight; }
+    int32_t getScreenWidth() const { return m_ScreenWidth; }
+    int32_t getScreenHeight() const { return m_ScreenHeight; }
     status start();
     status update();
     void stop();
 
 private:
+    status initializeRenderBuffer();
     struct RenderVertex {
         GLfloat x, y, u, v;
     };
@@ -60,6 +85,12 @@ private:
     EGLSurface surface;
     EGLContext eglContext;
     GLfloat ProjectionMatrix[4][4];
+    int32_t m_ScreenWidth, m_ScreenHeight;
+
+    GLint ScreenFrameBuffer;
+    GLuint RenderFrameBuffer, RenderVertexBuffer;
+    GLuint RenderTexture, RenderShaderProgram;
+    GLuint aPosition, aTexture, uProjection, uTexture;
 };
 
 

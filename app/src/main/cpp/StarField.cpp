@@ -19,7 +19,7 @@ StarField::StarField(android_app *app, TimeManager &timeManager, GraphicsManager
     _GraphicsManager.registerComponent(this);
 }
 
-static const char* VERTEX_SHADER =
+static const char* VERTEX_SHADER_STAR =
                 "attribute vec4 aPosition; \n"
                 "uniform mat4 uProjection; \n"
                 "uniform float uHeight; \n"
@@ -36,7 +36,7 @@ static const char* VERTEX_SHADER =
                         "}" ;
 
 
-static const char * FRAGMENT_SHADER =
+static const char * FRAGMENT_SHADER_STAR =
         "precision mediump float; \n"
         "uniform sampler2D uTexture; \n"
         "void main() { \n"
@@ -58,7 +58,7 @@ status StarField::load() {
     textureProperties = _GraphicsManager.loadTexture(TextureResource);
     if (textureProperties == nullptr) goto ERROR;
     Texture = textureProperties->texture;
-    ShaderProgram = _GraphicsManager.loadShader(VERTEX_SHADER, FRAGMENT_SHADER);
+    ShaderProgram = _GraphicsManager.loadShader(VERTEX_SHADER_STAR, FRAGMENT_SHADER_STAR);
     if (ShaderProgram == 0) goto ERROR;
     aPosition = glGetAttribLocation(ShaderProgram, "aPosition");
     uProjection = glGetUniformLocation(ShaderProgram, "uProjection");

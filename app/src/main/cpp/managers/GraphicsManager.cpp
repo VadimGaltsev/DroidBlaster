@@ -8,13 +8,56 @@
 #include <png.h>
 #include <pngconf.h>
 
+const int32_t DEFAULT_RENDER_WIDTH = 600;
 
 GraphicsManager::GraphicsManager(android_app *pApplication) :
         appPtr(pApplication), _RenderWidth(0), _RenderHeight(0),
         _elements(), eglContext(EGL_NO_CONTEXT), display(EGL_NO_DISPLAY), surface(EGL_NO_SURFACE),
         TextureCount(0), _Textures(), ProjectionMatrix(), Shaders(),
-        ShadersCount(0),_componentsCount(0), VertexBuffers(), VertexBufferCount(0) {
+        ShadersCount(0),_componentsCount(0), VertexBuffers(),
+        VertexBufferCount(0), ScreenFrameBuffer(0),
+        RenderFrameBuffer(0), RenderVertexBuffer(0),
+        RenderTexture(0), RenderShaderProgram(0),
+        aPosition(0), aTexture(0), uProjection(0),
+        uTexture(0) {
     Logger::info("Creating graphicManager");
+}
+
+status GraphicsManager::initializeRenderBuffer() {
+    Logger::info("Loading offscreen buffer.");
+    const RenderVertex vertices[] = {
+            {-1.0f, -1.0f, 0.0f, 0.0f},
+            {-1.0f, 1.0f, 0.0f, 1.0f},
+            {1.0f, -1.0f, 1.0f, 0.0f},
+            {1.0f, 1.0f, 1.0f, 1.0f},
+    };
+    float screenRatio = float(m_ScreenHeight) / float(m_ScreenWidth);
+    _RenderWidth = DEFAULT_RENDER_WIDTH;
+    _RenderHeight = float(_RenderWidth) * screenRatio;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &ScreenFrameBuffer);
+    glGenTextures(1, &RenderTexture);
+    glBindTexture(GL_TEXTURE_2D, RenderTexture);
+    //texture settings
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, _RenderWidth, _RenderHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, NULL);
+    glGenFramebuffers(1, &RenderFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, RenderFrameBuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, RenderTexture, 0);
+    glBindTexture(GL_TEXTURE_2D, 0); glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    RenderVertexBuffer = loadVertexBuffer(vertices, sizeof(vertices));
+    if (RenderVertexBuffer == 0 ) goto ERROR;
+    RenderShaderProgram = loadShader(VERTEX_SHADER, FRAGMENT_SHADER);
+    if (RenderShaderProgram == 0) goto ERROR;
+    aPosition = glGetAttribLocation(RenderShaderProgram, "aPosition");
+    aTexture = glGetAttribLocation(RenderShaderProgram, "aTexture");
+    uTexture = glGetUniformLocation(RenderShaderProgram, "uTexture");
+    return STATUS_OK;
+    ERROR:
+    Logger::error("Error while loading offsreen buffer.");
+    return STATUS_KO;
 }
 
 void GraphicsManager::registerComponent(GraphicsComponent *graphicsComponent) {
@@ -51,9 +94,10 @@ status GraphicsManager::start() {
     eglContext = eglCreateContext(display, eglConfig, NULL, CONTEXT_ATTRIBS);
     if (eglContext == EGL_NO_CONTEXT) goto ERROR;
     if (!eglMakeCurrent(display, surface, surface, eglContext) ||
-            !eglQuerySurface(display, surface, EGL_WIDTH, &_RenderWidth) ||
-            !eglQuerySurface(display, surface, EGL_HEIGHT, &_RenderHeight) ||
-            _RenderWidth <= 0 || _RenderHeight <= 0) goto ERROR;
+            !eglQuerySurface(display, surface, EGL_WIDTH, &m_ScreenWidth) ||
+            !eglQuerySurface(display, surface, EGL_HEIGHT, &m_ScreenHeight) ||
+            m_ScreenWidth <= 0 || m_ScreenHeight <= 0) goto ERROR;
+    if (initializeRenderBuffer() != STATUS_OK) goto ERROR;
     glViewport(0,0, _RenderWidth, _RenderHeight);
     glDisable(GL_DEPTH_TEST);
     memset(ProjectionMatrix[0], 0, sizeof(ProjectionMatrix));
@@ -134,10 +178,26 @@ status GraphicsManager::update() {
 //    static float clearColor = 0.0f;
 //    clearColor += 0.001f;
 //    glClearColor(clearColor, clearColor, clearColor, 1.0f);
+    glBindFramebuffer(GL_FRAMEBUFFER, RenderFrameBuffer);
+    glViewport(0,0, _RenderWidth, _RenderHeight);
     glClear(GL_COLOR_BUFFER_BIT);
     for (int32_t i = 0; i < _componentsCount; ++i) {
         _elements[i]->draw();
     }
+    glBindFramebuffer(GL_FRAMEBUFFER, ScreenFrameBuffer);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0,0, m_ScreenWidth, m_ScreenHeight);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, RenderTexture);
+    glUseProgram(RenderShaderProgram);
+    glUniform1i(uTexture, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, RenderVertexBuffer);
+    glEnableVertexAttribArray(aPosition);
+    glVertexAttribPointer(aPosition, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*) 0);
+    glEnableVertexAttribArray(aTexture);
+    glVertexAttribPointer(aTexture, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex), (GLvoid*) (sizeof(GLfloat) * 2));
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     if (eglSwapBuffers(display, surface) != EGL_TRUE) {
         Logger::error("Error %d swapping buffers.", eglGetError());
         return STATUS_KO;
@@ -297,6 +357,14 @@ void GraphicsManager::stop() {
     }
     VertexBufferCount = 0;
     ShadersCount = 0;
+    if (RenderFrameBuffer != 0) {
+        glDeleteFramebuffers(1, &RenderFrameBuffer);
+        RenderFrameBuffer = 0;
+    }
+    if (RenderTexture != 0) {
+        glDeleteTextures(1, &RenderTexture);
+        RenderTexture = 0;
+    }
     if (display != EGL_NO_DISPLAY) {
         eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         if (eglContext != EGL_NO_CONTEXT) {
