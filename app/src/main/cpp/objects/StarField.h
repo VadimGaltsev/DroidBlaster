@@ -6,8 +6,8 @@
 #define DROIDBLASTER_STARFIELD_H
 
 
-#include "managers/GraphicsManager.h"
-#include "managers/TimeManager.h"
+#include "../managers/GraphicsManager.h"
+#include "../managers/TimeManager.h"
 
 class StarField : GraphicsComponent {
 public:

@@ -6,7 +6,7 @@
 #define ANDROIDNATIVEBLUSTER_ACTIVITYHANDLER_H
 
 
-#include "Types.h"
+#include "../Types.h"
 
 class ActivityHandler {
 public:

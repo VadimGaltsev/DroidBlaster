@@ -4,15 +4,19 @@
 
 #include "LooperEvent.h"
 #include "helpers/Logger.h"
+
 #define STARTING "Starting Event Loop"
 #define EXIT "Exiting Event Loop"
 
 EventLifecycle::EventLifecycle
-        (android_app *_app, ActivityHandler & _activityHandler) : _pApplication(_app),
-                                                                                        _ActivityHandler(_activityHandler),
-                                                                                        _Quit(false), _Enabled(false) {
+        (android_app *_app, ActivityHandler & _activityHandler, InputHandler& inputHandler) :
+        _pApplication(_app),
+        _ActivityHandler(_activityHandler),
+        _Quit(false), _Enabled(false),
+        _InputHandler(inputHandler){
     _pApplication->userData = this;
     _pApplication->onAppCmd = callback_appEvent;
+    _pApplication->onInputEvent = callbackInput;
 }
 
 void EventLifecycle::run() {
@@ -120,4 +124,24 @@ void EventLifecycle::processAppEvent(int32_t _command) {
         default:
             break;
     }
+}
+
+int32_t EventLifecycle::callbackInput(android_app * app, AInputEvent * event) {
+    EventLifecycle& eventLifecycle = *(EventLifecycle*) app->userData;
+    return eventLifecycle.processInputEvent(event);
+}
+
+int32_t EventLifecycle::processInputEvent(AInputEvent * inputEvent) {
+    if (!_Enabled) return 0;
+
+    int32_t eventType = AInputEvent_getType(inputEvent);
+    switch (eventType) {
+        case AINPUT_EVENT_TYPE_MOTION:
+            switch (AInputEvent_getSource(inputEvent)) {
+                case AINPUT_SOURCE_TOUCHSCREEN:
+                    return _InputHandler.onTouchEvent(inputEvent);
+            }
+            break;
+    }
+    return 0;
 }

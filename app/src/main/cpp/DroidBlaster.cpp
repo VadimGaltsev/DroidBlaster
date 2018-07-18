@@ -45,16 +45,19 @@ static const float  ASTEROID_MIN_ANIM_SPEED = 8.0f;
 static const float ASTEROID_ANIM_SPEED_RANGE = 16.0f;
 static const int32_t STAR_COUNT = 50;
 
-DroidBlaster::DroidBlaster(android_app * app) : _TimeManager(), _eventLooper(app, *this), _GraphicManager(app),
+DroidBlaster::DroidBlaster(android_app * app) : _TimeManager(), _GraphicManager(app), _InputManager(app, _GraphicManager),
+                                                _eventLooper(app, *this, _InputManager),
                                                 _PhysicsManager(_TimeManager, _GraphicManager),
                                                 _Ship(app, _GraphicManager),
                                                 _Asteroids(app, _TimeManager, _GraphicManager, _PhysicsManager),
                                                 _AsteroidTexture(app, ASTEROID_TEXTURE), _StarTexture(app, STAR_TEXTURE),
                                                 _ShipTexture(app, SHIP_TEXTURE), _SpriteBatch(_TimeManager, _GraphicManager),
-                                                _StarField(app, _TimeManager, _GraphicManager, STAR_COUNT, _StarTexture) {
+                                                _StarField(app, _TimeManager, _GraphicManager, STAR_COUNT, _StarTexture),
+                                                _MoveableBody(app, _InputManager, _PhysicsManager) {
     LOG_INFO(CREATE)
     Sprite * shipSpriteGraphic = _SpriteBatch.registerSprite(_ShipTexture, SHIP_SIZE, SHIP_SIZE);
     shipSpriteGraphic->setAnimation(SHIP_FRAME_1, SHIP_FRAME_COUNT, SHIP_ANIM_SPEED, true);
+    _MoveableBody.registerMoveableBody(shipSpriteGraphic->location, SHIP_SIZE, SHIP_SIZE);
     _Ship.registerShip(shipSpriteGraphic);
     for (int32_t i = 0; i < ASTEROIDS_COUNT; ++i) {
         Sprite * asteroidGraphics = _SpriteBatch.registerSprite(_AsteroidTexture, ASTEROID_SIZE, ASTEROID_SIZE);
@@ -71,11 +74,13 @@ status DroidBlaster::onActive() {
     if (_GraphicManager.start() != STATUS_OK) {
         return STATUS_KO;
     }
+    _InputManager.start();
     _GraphicManager.loadTexture(_AsteroidTexture);
     _GraphicManager.loadTexture(_ShipTexture);
     _GraphicManager.loadTexture(_StarTexture);
     _Asteroids.initialize();
     _Ship.initialize();
+    _MoveableBody.initialize();
     _TimeManager.reset();
     return STATUS_OK;
 }
@@ -93,6 +98,7 @@ status DroidBlaster::onStep() {
     _TimeManager.update();
     _PhysicsManager.update();
     _Asteroids.update();
+    _MoveableBody.update();
     return _GraphicManager.update();
 }
 void DroidBlaster::onStart() {

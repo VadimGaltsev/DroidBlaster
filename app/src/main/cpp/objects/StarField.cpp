@@ -4,7 +4,7 @@
 
 #include <cstdlib>
 #include "StarField.h"
-#include "helpers/Logger.h"
+#include "../helpers/Logger.h"
 
 StarField::StarField(android_app *app, TimeManager &timeManager, GraphicsManager &graphicsManager,
                      int32_t startCount, Resource &textureResource) :

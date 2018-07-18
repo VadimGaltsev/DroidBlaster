@@ -5,7 +5,7 @@
 #ifndef ANDROIDNATIVEBLUSTER_DROIDBLASTER_H
 #define ANDROIDNATIVEBLUSTER_DROIDBLASTER_H
 
-#include "ActivityHandler.h"
+#include "handlers/ActivityHandler.h"
 #include "LooperEvent.h"
 #include "Types.h"
 #include "objects/Ship.h"
@@ -15,8 +15,9 @@
 #include "managers/TimeManager.h"
 #include "helpers/Resource.h"
 #include "engine/SpriteBatch.h"
-#include "StarField.h"
-
+#include "objects/StarField.h"
+#include "engine/MoveableBody.h"
+#include "managers/InputManager.h"
 
 class DroidBlaster : public ActivityHandler {
 public:
@@ -45,10 +46,13 @@ protected:
 private:
     EventLifecycle _eventLooper;
     GraphicsManager _GraphicManager;
-    Ship _Ship;
-    StarField _StarField;
     TimeManager _TimeManager;
     PhysicsManager _PhysicsManager;
+    InputManager _InputManager;
+
+    MoveableBody _MoveableBody;
+    Ship _Ship;
+    StarField _StarField;
     Asteroid _Asteroids;
     Resource _AsteroidTexture;
     Resource _ShipTexture;
