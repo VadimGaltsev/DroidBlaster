@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include "DroidBlaster.h"
 #include "helpers/Logger.h"
+#include <dlfcn.h>
 
 static const  int32_t  SHIP_SIZE = 64;
 static const int32_t  ASTEROIDS_COUNT = 16;
