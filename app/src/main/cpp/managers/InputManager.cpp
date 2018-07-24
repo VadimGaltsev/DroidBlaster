@@ -17,7 +17,7 @@ InputManager::InputManager(android_app * app, GraphicsManager & graphicsManager)
 bool InputManager::onAccelerometerEvent(ASensorEvent *event) {
     static const float GRAVITY = ASENSOR_STANDARD_GRAVITY / 2.0f;
     static const float MIN_X = -1.0f; static const float MAX_X = 1.0f;
-    static const float MIN_Y = 0.0f; static const float MAX_Y = 2.0f;
+    static const float MIN_Y = -1.0f; static const float MAX_Y = 1.0f;
     static const float CENTER_X = (MIN_X + MAX_X) / 2.0f;
     static const float CENTER_Y = (MAX_Y + MIN_Y) / 2.0f ;
     ASensorVector vector;
