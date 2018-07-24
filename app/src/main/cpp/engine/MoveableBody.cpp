@@ -3,27 +3,28 @@
 //
 
 #include "MoveableBody.h"
+static const float MOVE_SPEED = 10.0f / PHYSICS_SCALE;
 
 
 MoveableBody::MoveableBody(android_app * app, InputManager & inputManager, PhysicsManager & physicsManager) :
         _InputManager(inputManager),
         _PhysicsManager(physicsManager),
-        Body(nullptr){}
+        Body(nullptr), Target(nullptr) {}
 
 void MoveableBody::initialize() {
-    Body->velocityX = 0.0f;
-    Body->velocityY = 0.0f;
+    Body->SetLinearVelocity(b2Vec2(0.0f, 0.0f));
 }
 
-PhysicsBody* MoveableBody::registerMoveableBody(Location & loc, int32_t x, int32_t y) {
-    Body = _PhysicsManager.loadBody(loc, x, y);
+b2Body* MoveableBody::registerMoveableBody(Location & loc, int32_t x, int32_t y) {
+    Body = _PhysicsManager.loadBody(loc, 0x2, 0x1, x, y, 0.0f);
+    Target = _PhysicsManager.loadTarget(Body);
     _InputManager.setRefPoint(&loc);
     return Body;
 }
 
 void MoveableBody::update() {
-    static const float MOVE_SPEED = 320.0f;
-    Body->velocityX = _InputManager.getDirectionX() * MOVE_SPEED;
-    Body->velocityY = _InputManager.getDirectionY() * MOVE_SPEED;
-
+    b2Vec2 target = Body->GetPosition() + b2Vec2(
+            _InputManager.getDirectionX() * MOVE_SPEED,
+            _InputManager.getDirectionY() * MOVE_SPEED);
+    Target->SetTarget(target);
 }

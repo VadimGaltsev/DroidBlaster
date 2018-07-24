@@ -13,15 +13,15 @@
 class MoveableBody {
 public:
     MoveableBody(android_app*, InputManager&, PhysicsManager&);
-    PhysicsBody* registerMoveableBody(Location&, int32_t, int32_t);
+    b2Body* registerMoveableBody(Location&, int32_t, int32_t);
     void initialize();
     void update();
 
 private:
     PhysicsManager& _PhysicsManager;
     InputManager& _InputManager;
-    PhysicsBody* Body;
-
+    b2Body* Body;
+    b2MouseJoint* Target;
 };
 
 

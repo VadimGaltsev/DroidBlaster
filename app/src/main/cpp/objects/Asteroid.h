@@ -18,13 +18,11 @@ public:
     void update();
 
 private:
-    void spawn(PhysicsBody* _body);
+    void spawn(b2Body* _body);
     TimeManager& _TimeManager;
     GraphicsManager& _GraphicsManager;
     PhysicsManager& _PhysicsManager;
-
-    PhysicsBody* _Bodies[1024];
-    int32_t _BodiesCount;
+    std::vector<b2Body*> _Bodies;
     float _MinBound;
     float _LowerBound;
     float _UpperBound;

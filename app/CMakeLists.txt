@@ -10,9 +10,11 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
+
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++11 -stdlib=libc++")
+
 
 file(GLOB_RECURSE
             mainData
@@ -39,14 +41,12 @@ add_library( # Sets the name of the path variable.
               ~/Library/Android/sdk/ndk-bundle/sources/android/native_app_glue/android_native_app_glue.c)
 
 
-set(png_src src/main/lib/libpng/)
-set(zlib_src src/main/lib/zlib/)
-#set(box2dpath src/main/lib/Box2D/)
+set(png_src src/main/lib/libpng)
+set(zlib_src src/main/lib/zlib)
+set(box2d_src src/main/lib/Box2D)
+
+
 message("native source app ${PROJECT_SOURCE_DIR}")
-
-find_package(BOX2D)
-
-message("box 2d is in project ${BOX2D_FOUND}")
 
 file(GLOB
           png_lib
@@ -60,10 +60,17 @@ file(GLOB
           ${zlib_src}/*.cpp
           ${zlib_src}/*.c
             )
+file(GLOB_RECURSE
+          box2dsrc
+          ${box2d_src}/*.h
+          ${box2d_src}/*.cpp
+            )
 
 
 include_directories(${png_src})
 include_directories(${zlib_src})
+include_directories(${box2d_src})
+
 
 add_library( # Sets the name of the path variable.
               pnglib
@@ -80,6 +87,13 @@ add_library( # Sets the name of the path variable.
               # you want CMake to locate.
               ${zlib_lib})
 
+add_library( # Sets the name of the path variable.
+              box2dlib
+
+              STATIC
+              # Specifies the name of the NDK library that
+              # you want CMake to locate.
+              ${box2dsrc})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -132,5 +146,5 @@ target_link_libraries( # Specifies the target library.
                        ${graphics}
                        pnglib
                        zlibLib
-                       ${BOX2D_LIBRARIES}
+                       box2dlib
                              )

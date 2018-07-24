@@ -59,7 +59,8 @@ DroidBlaster::DroidBlaster(android_app * app) : _TimeManager(), _GraphicManager(
     Sprite * shipSpriteGraphic = _SpriteBatch.registerSprite(_ShipTexture, SHIP_SIZE, SHIP_SIZE);
     shipSpriteGraphic->setAnimation(SHIP_FRAME_1, SHIP_FRAME_COUNT, SHIP_ANIM_SPEED, true);
     _MoveableBody.registerMoveableBody(shipSpriteGraphic->location, SHIP_SIZE, SHIP_SIZE);
-    _Ship.registerShip(shipSpriteGraphic);
+    b2Body* shipBody = _MoveableBody.registerMoveableBody(shipSpriteGraphic->location, SHIP_SIZE, SHIP_SIZE);
+    _Ship.registerShip(shipSpriteGraphic, shipBody);
     for (int32_t i = 0; i < ASTEROIDS_COUNT; ++i) {
         Sprite * asteroidGraphics = _SpriteBatch.registerSprite(_AsteroidTexture, ASTEROID_SIZE, ASTEROID_SIZE);
         float animSpeed = ASTEROID_MIN_ANIM_SPEED + RAND(ASTEROID_ANIM_SPEED_RANGE);
@@ -76,6 +77,7 @@ status DroidBlaster::onActive() {
         return STATUS_KO;
     }
     _InputManager.start();
+    _PhysicsManager.start();
     _GraphicManager.loadTexture(_AsteroidTexture);
     _GraphicManager.loadTexture(_ShipTexture);
     _GraphicManager.loadTexture(_StarTexture);
@@ -100,6 +102,8 @@ status DroidBlaster::onStep() {
     _PhysicsManager.update();
     _Asteroids.update();
     _MoveableBody.update();
+    _Ship.update();
+    if (_Ship.isDestroy()) return STATUS_EXIT;
     return _GraphicManager.update();
 }
 void DroidBlaster::onStart() {

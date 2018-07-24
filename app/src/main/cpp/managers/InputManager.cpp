@@ -17,9 +17,9 @@ InputManager::InputManager(android_app * app, GraphicsManager & graphicsManager)
 bool InputManager::onAccelerometerEvent(ASensorEvent *event) {
     static const float GRAVITY = ASENSOR_STANDARD_GRAVITY / 2.0f;
     static const float MIN_X = -1.0f; static const float MAX_X = 1.0f;
-    static const float MIN_Z = 0.0f; static const float MAX_Z = 2.0f;
+    static const float MIN_Y = 0.0f; static const float MAX_Y = 2.0f;
     static const float CENTER_X = (MIN_X + MAX_X) / 2.0f;
-    static const float CENTER_Z = (MAX_Z + MIN_Z) / 2.0f ;
+    static const float CENTER_Y = (MAX_Y + MIN_Y) / 2.0f ;
     ASensorVector vector;
     toScreenCoord(_Rotation, &event->vector, &vector);
 
@@ -31,14 +31,14 @@ bool InputManager::onAccelerometerEvent(ASensorEvent *event) {
     }
     DirectionX = CENTER_X - rawHorizontal;
 
-    float rawVertical = event->vector.z / GRAVITY;
+    float rawVertical = event->vector.y / GRAVITY;
 
-    if (rawVertical > MAX_Z) {
-        rawVertical = MAX_Z;
-    } else if (rawVertical < MIN_Z) {
-        rawVertical = MIN_Z;
+    if (rawVertical > MAX_Y) {
+        rawVertical = MAX_Y;
+    } else if (rawVertical < MIN_Y) {
+        rawVertical = MIN_Y;
     }
-    DirectionY = rawVertical - CENTER_Z;
+    DirectionY = CENTER_Y - rawVertical;
     return true;
 }
 
