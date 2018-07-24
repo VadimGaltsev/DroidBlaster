@@ -7,6 +7,7 @@
 
 #include "GraphicsManager.h"
 #include "../handlers/InputHandler.h"
+#include "../engine/Configure.h"
 
 class InputManager : public InputHandler {
 public:
@@ -15,7 +16,8 @@ public:
     float getDirectionY() const { return DirectionY; }
     void setRefPoint(Location* location) { RefPoint = location; }
     void start();
-
+    bool onAccelerometerEvent(ASensorEvent *event) override;
+    void toScreenCoord(screen_rotation, ASensorVector*, ASensorVector*);
 protected:
     bool onTouchEvent(AInputEvent*);
 
@@ -26,6 +28,7 @@ private:
     float DirectionX;
     float DirectionY;
     Location* RefPoint;
+    screen_rotation _Rotation;
 };
 
 

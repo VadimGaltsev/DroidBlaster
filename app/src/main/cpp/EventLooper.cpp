@@ -13,7 +13,11 @@ EventLifecycle::EventLifecycle
         _pApplication(_app),
         _ActivityHandler(_activityHandler),
         _Quit(false), _Enabled(false),
-        _InputHandler(inputHandler){
+        _InputHandler(inputHandler),
+        _SensorEventQueue(NULL),
+        _Accelerometer(NULL),
+        _SensorManager(NULL),
+        Sensor_PollSource() {
     _pApplication->userData = this;
     _pApplication->onAppCmd = callback_appEvent;
     _pApplication->onInputEvent = callbackInput;
@@ -52,6 +56,16 @@ void EventLifecycle::run() {
 void EventLifecycle::activate() {
     //activate visual component only if window enabled
     if (!_Enabled && _pApplication->window != NULL) {
+        Sensor_PollSource.id = LOOPER_ID_USER;
+        Sensor_PollSource.app = _pApplication;
+        Sensor_PollSource.process = callbackSensor;
+        _SensorManager = ASensorManager_getInstance();
+        if (_SensorManager != nullptr) {
+            _SensorEventQueue = ASensorManager_createEventQueue(_SensorManager,
+            _pApplication->looper, LOOPER_ID_USER, nullptr, &Sensor_PollSource);
+            if (_SensorEventQueue == nullptr) goto ERROR;
+        }
+        activateAccelerometer();
         _Quit = false; _Enabled = true;
         if (_ActivityHandler.onActive() != STATUS_OK) {
             goto ERROR;
@@ -67,6 +81,12 @@ void EventLifecycle::activate() {
 
 void EventLifecycle::deactivate() {
     if (_Enabled) {
+        deactivateAccelerometer();
+        if (_SensorEventQueue != nullptr) {
+            ASensorManager_destroyEventQueue(_SensorManager, _SensorEventQueue);
+            _SensorEventQueue = nullptr;
+        }
+        _SensorManager = nullptr;
         _ActivityHandler.onDeactivate();
         _Enabled = false;
     }
@@ -126,6 +146,24 @@ void EventLifecycle::processAppEvent(int32_t _command) {
     }
 }
 
+void EventLifecycle::callbackSensor(android_app * pApp, android_poll_source * pAndroidPollSrc) {
+    EventLifecycle& lifecycle = *static_cast<EventLifecycle*>(pApp->userData);
+    lifecycle.processEventSensor();
+}
+
+void EventLifecycle::processEventSensor() {
+    ASensorEvent event;
+    if (!_Enabled) return;
+    while (ASensorEventQueue_getEvents(_SensorEventQueue, &event, 1) > 0) {
+        switch (event.type) {
+            case ASENSOR_TYPE_ACCELEROMETER:
+                _InputHandler.onAccelerometerEvent(&event);
+                break;
+        }
+    }
+}
+
+
 int32_t EventLifecycle::callbackInput(android_app * app, AInputEvent * event) {
     EventLifecycle& eventLifecycle = *(EventLifecycle*) app->userData;
     return eventLifecycle.processInputEvent(event);
@@ -144,4 +182,30 @@ int32_t EventLifecycle::processInputEvent(AInputEvent * inputEvent) {
             break;
     }
     return 0;
+}
+
+void EventLifecycle::activateAccelerometer() {
+    _Accelerometer = ASensorManager_getDefaultSensor(_SensorManager, ASENSOR_TYPE_ACCELEROMETER);
+    if (_Accelerometer != nullptr) {
+        if (ASensorEventQueue_enableSensor(_SensorEventQueue, _Accelerometer) < 0) {
+            Logger::error("Error while activate accelerometer");
+            return;
+        }
+        int32_t minDelay = ASensor_getMinDelay(_Accelerometer);
+        if (ASensorEventQueue_setEventRate(_SensorEventQueue, _Accelerometer, minDelay) < 0) {
+            Logger::error("Could not set accelerometer rate");
+        }
+    } else {
+        Logger::error("Error while activate accelerometer, can not find any acc - sensor");
+    }
+
+}
+
+void EventLifecycle::deactivateAccelerometer() {
+    if (_Accelerometer != nullptr) {
+        if (ASensorEventQueue_disableSensor(_SensorEventQueue, _Accelerometer) < 0) {
+            Logger::error("Error while deactivating sensor");
+        }
+        _Accelerometer = nullptr;
+    }
 }

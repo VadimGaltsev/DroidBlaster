@@ -12,6 +12,8 @@ cmake_minimum_required(VERSION 3.4.1)
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++11 -stdlib=libc++")
+
 file(GLOB_RECURSE
             mainData
 
@@ -39,10 +41,12 @@ add_library( # Sets the name of the path variable.
 
 set(png_src src/main/lib/libpng/)
 set(zlib_src src/main/lib/zlib/)
-
+#set(box2dpath src/main/lib/Box2D/)
 message("native source app ${PROJECT_SOURCE_DIR}")
 
-#find_package(ZLIB REQUIRED)
+find_package(BOX2D)
+
+message("box 2d is in project ${BOX2D_FOUND}")
 
 file(GLOB
           png_lib
@@ -57,8 +61,10 @@ file(GLOB
           ${zlib_src}/*.c
             )
 
+
 include_directories(${png_src})
 include_directories(${zlib_src})
+
 add_library( # Sets the name of the path variable.
               pnglib
 
@@ -73,6 +79,8 @@ add_library( # Sets the name of the path variable.
               # Specifies the name of the NDK library that
               # you want CMake to locate.
               ${zlib_lib})
+
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
 # default, you only need to specify the name of the public NDK library
@@ -105,7 +113,9 @@ find_library( GLES2Lib
               GLESv2)
 
 
+
 set(graphics ${GLES2Lib} ${eglLib})
+
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
@@ -122,4 +132,5 @@ target_link_libraries( # Specifies the target library.
                        ${graphics}
                        pnglib
                        zlibLib
+                       ${BOX2D_LIBRARIES}
                              )

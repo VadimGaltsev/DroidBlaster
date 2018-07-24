@@ -4,25 +4,27 @@
 
 #include "PhysicsManager.h"
 #include "../helpers/Logger.h"
+#include <>
+static const int32_t VELOCITY_ITER = 6;
+static const int32_t POSITION_ITER = 2;
 
 PhysicsManager::PhysicsManager(TimeManager &_TimerManager, GraphicsManager &_GraphicsManager) :
                 _TimeManager(_TimerManager), graphicsManager(_GraphicsManager),
-                _PhysicsBodies(), _PhysicsBodyCount(0) {
+                _PhysicsBodies(), _PhysicsBodyCount(0), world(b2Vec2_zero), Bodies(), Locations(), BodyBoundsObj(NULL) {
     Logger::info("Creating PhysicsManager");
+    world.SetContactListener(this);
 }
 
 PhysicsManager::~PhysicsManager() {
     Logger::info("Destroying PhysicsManager");
-    for (int32_t i = 0; i < _PhysicsBodyCount; ++i) {
-        delete _PhysicsBodies[i];
+    std::vector<b2Body*>::iterator bodyIt;
+    for (bodyIt = Bodies.begin(); bodyIt < Bodies.end(); ++bodyIt) {
+        delete (PhysicsCollision*) *(bodyIt)->GetUserData();
     }
 }
 
-PhysicsBody* PhysicsManager::loadBody(Location &location, int32_t _width, int32_t height) {
-    PhysicsBody* body = new PhysicsBody(&location, _width, height);
-    _PhysicsBodies[_PhysicsBodyCount++] = body;
-    return body;
-}
+b2Body* PhysicsManager::loadBody(Location &location, uint16 pCategoty,
+                                 uint16 pMask, int32_t pSizex, int32_t pSizeY, float pRestitution) {}
 
 void PhysicsManager::update() {
     float timeStamp = _TimeManager.elapsed();
